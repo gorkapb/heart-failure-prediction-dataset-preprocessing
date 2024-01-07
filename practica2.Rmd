@@ -1,0 +1,163 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Práctica 2
+
+## Carga del Dataset
+
+```{r}
+path = 'heart.csv'
+heart <- read.csv(path, row.names=NULL)
+
+structure = str(heart)
+```
+
+## Limpieza de datos
+
+```{r}
+
+# Datos incompletos
+print('Valores NA:')
+colSums(is.na(heart))
+
+
+# Datos redundantes
+print('Duplicated rows: ')
+sum(duplicated(heart))
+
+
+# Gestionar zeros
+
+
+
+# Eliminamos valores extremos
+
+box_p<-boxplot(heart$Age, col="skyblue", frame.plot=F, main="Outliers Age")
+box_p$out
+heart_no_outliers<-heart[!(heart$Age %in% box_p$out),]
+box_p<-boxplot(heart$Age, col="skyblue", frame.plot=F, main="Outliers Age Removed")
+box_p$out
+
+box_p<-boxplot(heart_no_outliers$RestingBP, col="skyblue", frame.plot=F, main="Outliers RestingBP")
+box_p$out
+heart_no_outliers<-heart_no_outliers[!(heart_no_outliers$RestingBP %in% box_p$out),]
+box_p<-boxplot(heart_no_outliers$RestingBP, col="skyblue", frame.plot=F, main="Outliers RestingBP Removed")
+box_p$out
+
+box_p<-boxplot(heart_no_outliers$Cholesterol, col="skyblue", frame.plot=F, main="Outliers Cholesterol")
+box_p$out
+heart_no_outliers<-heart_no_outliers[!(heart_no_outliers$Cholesterol %in% box_p$out),]
+box_p<-boxplot(heart_no_outliers$Cholesterol, col="skyblue", frame.plot=F, main="Outliers Cholesterol Removed")
+box_p$out
+
+box_p<-boxplot(heart_no_outliers$MaxHR, col="skyblue", frame.plot=F, main="Outliers MaxHR")
+box_p$out
+heart_no_outliers<-heart_no_outliers[!(heart_no_outliers$MaxHR %in% box_p$out),]
+box_p<-boxplot(heart_no_outliers$MaxHR, col="skyblue", frame.plot=F, main="Outliers MaxHR Removed")
+box_p$out
+
+box_p<-boxplot(heart_no_outliers$Oldpeak, col="skyblue", frame.plot=F, main="Outliers Oldpeak")
+box_p$out
+heart_no_outliers<-heart_no_outliers[!(heart_no_outliers$Oldpeak %in% box_p$out),]
+box_p<-boxplot(heart_no_outliers$Oldpeak, col="skyblue", frame.plot=F, main="Outliers Oldpeak Removed")
+box_p$out
+```
+
+## Análisis de los datos
+
+```{r}
+```
+
+## Pruebas estadísticas
+
+```{r}
+
+x<- na.omit(heart[, c("Age", "RestingBP", "Cholesterol", "MaxHR", "Oldpeak")])
+
+
+# histogramas
+
+hist(heart$Age, main="Histograma de Edad", xlab="Age", col="lightblue")
+hist(heart$RestingBP, main="Histograma de RestingBP", xlab="RestingBP", col="lightblue")
+hist(heart$Cholesterol, main="Histograma de Cholesterol", xlab="Cholesterol", col="lightblue")
+hist(heart$MaxHR, main="Histograma de MaxHR", xlab="MaxHR", col="lightblue")
+hist(heart$Oldpeak, main="Histograma de Oldpeak", xlab="Oldpeak", col="lightblue")
+
+
+if(!require("corrplot")) install.packages("corrplot"); library("corrplot")
+
+# correlaciones
+res<-cor(x)
+corrplot(res,method="color",tl.col="black", tl.srt=30, order = "AOE",
+number.cex=0.75,sig.level = 0.01, addCoef.col = "black")
+
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+
+
+# visualizaciones
+
+# matriz de graficos
+plot(x, col=as.factor(heart$ChestPainType), main="Tipo de dolor toracico")
+
+# matriz de graficos
+plot(x, col=as.factor(heart$HeartDisease), main="Cardiopatía")
+
+
+ggplot(heart, aes(x=Age)) +
+  geom_bar(aes(fill=factor(HeartDisease)), position="dodge") +
+  scale_fill_discrete(name="Cardiopatia", labels=c("No", "SI")) +
+  labs(x="Age", y="Count") +
+  ggtitle("Cardiopatía (si o no) por edad") +
+  theme_minimal()
+
+ggplot(heart, aes(x=ChestPainType )) +
+  geom_bar(aes(fill=factor(HeartDisease)), position="dodge") +
+  scale_fill_discrete(name="Cardiopatia", labels=c("No", "SI")) +
+  labs(x="ChestPainType ", y="Count") +
+  ggtitle("Cardiopatia (si o  no) por tipo de dolor") +
+  theme_minimal()
+```
+
+A continuación, se han mostrado los **histogramas** de las diferentes variables numéricas para poder observar sus **frequencias**:
+
+-   **Age**: A partir del histograma de la variable Age observamos como la mayoría de los pacientes tienen una edad alrededor de los 50 y 60 años de edad (media edad tardía).
+
+-   **RestingBP**: A partir del histograma de la variable RestingBP observamos como la mayoría de valores se acumulan entre 100 y 150 mm Hg.
+
+-   **Cholesterol**: A partir del histograma de la variable Cholesterol observamos como la mayoría de valores se acumulan entre 150 y 200, aqunque también encontramos un gran numero de pacientes con 0 .
+
+-   **MaxHR**: A partir del histograma de la variable MaxHR observamos como la frequencia de aparicion de valores está bastante distribuida, centrandose entre 100 y 150.
+
+-   **Oldpeak**: A partir del histograma de la variable Oldpeak observamos como la frequencia de aparicion de valores está bastante distribuida, siendo el más común 1.
+
+Posteriormente se han visualizado las **correlaciones** entre las diferentes variables numéricas del dataset. Para ello se ha generado la **matriz de correlaciones**, de la cual podemos extraer las siguientes conclusiones:
+
+-   Observamos una **correlación positiva** significativa las variables MaxHR y Cholesterol y entre Age y RestingBP. También observamos una correlación positiva, aunque menos significativa, entre las variables RestingBP y Oldpeak y entre RestingBP y Cholesterol. Esto significa que cuando una de las dos variables se incrementa, la otra tiende a incrementarse también.
+
+-   Observamos una **correlación negativa** bastante significativa entre Age y MaxHR. También encontramos una correlación negativa, aunque menos significativa, entre las variables MaxHR y RestingBP, entre MaxHR y Oldpeak y entre Cholesterol y Age. Esto significa que cuando una de las dos variables se incrementa, la otra tiende a reducirse.
+
+-   Por último, observamos que las variables Oldpeak y Cholesterol están poco correlacionadas.
+
+Por último, se han generado varias **visualizaciones** que nos han permitido entender mejor los datos.
+
+La visualización inicial que hemos creado es una **matriz de gráficos de dispersión**, que representa las interrelaciones entre las distintas variables numéricas de nuestro conjunto de datos. En cada gráfico de esta matriz, los puntos se han coloreado de manera diferenciada para representar las categorías individuales de la variable categórica 'ChestPainType' (tipos de dolor torácico). Nuestro objetivo era identificar agrupaciones claras en cada par de variables. Sin embargo, observamos que los puntos están bastante entremezclados, lo que dificulta la clasificación del tipo de dolor torácico basándose únicamente en las variables numéricas.
+
+A continuación, hemos generado una segunda **matriz de gráficos de dispersión**, que al igual que la anterior, representa las interrelaciones entre las distintas variables numéricas de nuestro conjunto de datos. En cada gráfico de esta matriz, los puntos se han coloreado de manera diferenciada para representar las dos categorías individuales de la variable binaria 'HeartDisease' (indicando si se ha detectado una cardiopatía o no). En este caso, sí que hemos detectado dos grupos claramente diferenciados en cada uno de los gráficos, lo que demuestra que es posible identificar una cardiopatía a partir de las variables numéricas.
+
+Posteriormente, hemos elaborado un **gráfico de barras** que muestra el número de casos de cardiopatías y no cardiopatías (pacientes a los que no se les ha diagnosticado una cardiopatía) para cada una de las edades registradas. Observamos que la mayoría de los pacientes a los que no se les ha diagnosticado una cardiopatía se encuentran en el rango de edad de 40 a 60 años (edad media). Por otro lado, la mayoría de los pacientes diagnosticados con una cardiopatía se encuentran en el rango de edad de 50 a 70 años (edad media avanzada).
+
+A continuación, hemos elaborado un segundo **gráfico de barras** que muestra el número de casos de cardiopatías y no cardiopatías (pacientes a los que no se les ha diagnosticado una cardiopatía) para cada uno de los tipos de dolor torácico registrados. Observamos que la mayoría de los pacientes con dolor torácico asintomático (ASY) han sido diagnosticados con una cardiopatía. Sin embargo, para la mayoría de los pacientes con otros tipos de dolores torácicos, como angina típica, angina atípica y dolor no anginoso, no se les ha diagnosticado una cardiopatía. Por lo tanto, concluimos que la mayoría de las cardiopatías no se han manifestado con un dolor previo.
+
+## Conclusión
+
+En esta primera práctica se ha realizado un **análisis estadístico** y se ha aplicado **SVD** sobre el dataset Heart Failure Prediction Dataset extraído de Kaggle.
+
+Se ha comenzado por plantear una **problema analítico** sobre el dataset: identificar los factores que influyen en la probabilidad de que una persona desarrolle una cardiopatía. Por ellos se ha establecido que se trata de una problema de clasificación y se han establecido los objetivos.
+
+Tras establecer el problema, se ha llevado a cabo un **análisis exploratorio** del dataset, que ha contenido un análisis estadístico de este. Hemos estudiado las variables más interesantes, comprobando sus distribuciones, frecuencias, correlaciones y varias visualizaciones.
+
+Como resultado de este análisis, hemos concluido que es posible estimar si una paciente padecerá una cardiopatía a través de las diferentes variables numéricas del conjunto de datos (Age, RestingBP, Cholesterol, MaxHR y Oldpeak).
+
+También hemos podido concluir que hay una correlación entre el tipo de dolor torácico sufrido por el paciente con el diagnóstico de una cardiopatía, concluyendo que en muchos casos el paciente no presentará síntomas..

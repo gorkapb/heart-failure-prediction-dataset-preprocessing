@@ -92,15 +92,16 @@ for (col in names(ComX)) {
 
 x<- na.omit(heart[, c("Age", "RestingBP", "Cholesterol", "MaxHR", "Oldpeak")])
 
-
 # histogramas
-
+par(mfrow = c(2, 3))
 hist(heart$Age, main="Histograma de Edad", xlab="Age", col="lightblue")
 hist(heart$RestingBP, main="Histograma de RestingBP", xlab="RestingBP", col="lightblue")
 hist(heart$Cholesterol, main="Histograma de Cholesterol", xlab="Cholesterol", col="lightblue")
 hist(heart$MaxHR, main="Histograma de MaxHR", xlab="MaxHR", col="lightblue")
 hist(heart$Oldpeak, main="Histograma de Oldpeak", xlab="Oldpeak", col="lightblue")
+```
 
+```{r}
 
 if(!require("corrplot")) install.packages("corrplot"); library("corrplot")
 

@@ -66,9 +66,18 @@ box_p$out
 ```
 
 ## Análisis de los datos
+Contestada en el latex
+
+
+## Comprobación de la normalidad y homogeneidad
+
 
 ```{r}
+
+
+
 ```
+
 
 ## Pruebas estadísticas
 

@@ -1,0 +1,148 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Práctica 2
+
+## Carga del Dataset
+
+```{r}
+path = '../dataset/heart.csv'
+heart <- read.csv(path, row.names=NULL)
+
+structure = str(heart)
+```
+
+## Limpieza de datos
+
+```{r}
+
+# Datos incompletos
+print('Valores NA:')
+colSums(is.na(heart))
+
+
+# Datos redundantes
+print('Duplicated rows: ')
+sum(duplicated(heart))
+
+
+# Eliminamos valores extremos
+
+box_p<-boxplot(heart$Age, col="skyblue", frame.plot=F, main="Outliers Age")
+box_p$out
+heart_no_outliers<-heart[!(heart$Age %in% box_p$out),]
+box_p<-boxplot(heart$Age, col="skyblue", frame.plot=F, main="Outliers Age Removed")
+box_p$out
+
+box_p<-boxplot(heart_no_outliers$RestingBP, col="skyblue", frame.plot=F, main="Outliers RestingBP")
+box_p$out
+heart_no_outliers<-heart_no_outliers[!(heart_no_outliers$RestingBP %in% box_p$out),]
+box_p<-boxplot(heart_no_outliers$RestingBP, col="skyblue", frame.plot=F, main="Outliers RestingBP Removed")
+box_p$out
+
+box_p<-boxplot(heart_no_outliers$Cholesterol, col="skyblue", frame.plot=F, main="Outliers Cholesterol")
+box_p$out
+heart_no_outliers<-heart_no_outliers[!(heart_no_outliers$Cholesterol %in% box_p$out),]
+box_p<-boxplot(heart_no_outliers$Cholesterol, col="skyblue", frame.plot=F, main="Outliers Cholesterol Removed")
+box_p$out
+
+box_p<-boxplot(heart_no_outliers$MaxHR, col="skyblue", frame.plot=F, main="Outliers MaxHR")
+box_p$out
+heart_no_outliers<-heart_no_outliers[!(heart_no_outliers$MaxHR %in% box_p$out),]
+box_p<-boxplot(heart_no_outliers$MaxHR, col="skyblue", frame.plot=F, main="Outliers MaxHR Removed")
+box_p$out
+
+box_p<-boxplot(heart_no_outliers$Oldpeak, col="skyblue", frame.plot=F, main="Outliers Oldpeak")
+box_p$out
+heart_no_outliers<-heart_no_outliers[!(heart_no_outliers$Oldpeak %in% box_p$out),]
+box_p<-boxplot(heart_no_outliers$Oldpeak, col="skyblue", frame.plot=F, main="Outliers Oldpeak Removed")
+box_p$out
+```
+
+## Comprobación de la normalidad y homogeneidad
+
+```{r}
+
+ComX <- heart[, c("Age", "RestingBP", "Cholesterol", "MaxHR", "Oldpeak")]
+
+# plots
+par(mfrow = c(2, 3)) 
+for (col in names(ComX)) {
+  qqnorm(ComX[[col]], main = paste("Q-Q Plot de", col))
+  qqline(ComX[[col]], col = 2) 
+}
+
+```
+
+## Pruebas estadísticas
+
+```{r}
+
+x<- na.omit(heart[, c("Age", "RestingBP", "Cholesterol", "MaxHR", "Oldpeak")])
+
+# histogramas
+par(mfrow = c(2, 3))
+hist(heart$Age, main="Histograma de Edad", xlab="Age", col="lightblue")
+hist(heart$RestingBP, main="Histograma de RestingBP", xlab="RestingBP", col="lightblue")
+hist(heart$Cholesterol, main="Histograma de Cholesterol", xlab="Cholesterol", col="lightblue")
+hist(heart$MaxHR, main="Histograma de MaxHR", xlab="MaxHR", col="lightblue")
+hist(heart$Oldpeak, main="Histograma de Oldpeak", xlab="Oldpeak", col="lightblue")
+```
+
+```{r}
+
+if(!require("corrplot")) install.packages("corrplot"); library("corrplot")
+
+# correlaciones
+res<-cor(x)
+corrplot(res,method="color",tl.col="black", tl.srt=30, order = "AOE",
+number.cex=0.75,sig.level = 0.01, addCoef.col = "black")
+
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+
+
+# visualizaciones
+
+# matriz de graficos
+plot(x, col=as.factor(heart$ChestPainType), main="Tipo de dolor toracico")
+
+# matriz de graficos
+plot(x, col=as.factor(heart$HeartDisease), main="Cardiopatía")
+
+
+ggplot(heart, aes(x=Age)) +
+  geom_bar(aes(fill=factor(HeartDisease)), position="dodge") +
+  scale_fill_discrete(name="Cardiopatia", labels=c("No", "SI")) +
+  labs(x="Age", y="Count") +
+  ggtitle("Cardiopatía (si o no) por edad") +
+  theme_minimal()
+
+ggplot(heart, aes(x=ChestPainType )) +
+  geom_bar(aes(fill=factor(HeartDisease)), position="dodge") +
+  scale_fill_discrete(name="Cardiopatia", labels=c("No", "SI")) +
+  labs(x="ChestPainType ", y="Count") +
+  ggtitle("Cardiopatia (si o  no) por tipo de dolor") +
+  theme_minimal()
+```
+
+## Predicción
+
+```{r}
+# Conjunto de datos
+all_dataset <- na.omit(heart[, c("Age", "RestingBP", "Cholesterol", "MaxHR", "Oldpeak", "HeartDisease")])
+indices_entrenamiento <- sample(1:nrow(all_dataset), 0.7 * nrow(all_dataset))
+train_dataset <- all_dataset[indices_entrenamiento, ]
+test_dataset <- all_dataset[-indices_entrenamiento, ]
+
+# Entrenar el modelo
+modelo <- glm(HeartDisease ~ ., data = train_dataset, family = "binomial")
+predicciones <- predict(modelo, newdata = test_dataset, type = "response")
+
+# Clases (usando un umbral)
+umbral <- 0.3
+clases_predichas <- ifelse(predicciones > umbral, 1, 0)  
+precision <- mean(clases_predichas == all_dataset$HeartDisease)
+cat("Precisión del modelo:", precision)
+```

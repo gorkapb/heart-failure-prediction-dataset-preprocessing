@@ -136,6 +136,26 @@ ggplot(heart, aes(x=ChestPainType )) +
   ggtitle("Cardiopatia (si o  no) por tipo de dolor") +
   theme_minimal()
 ```
+## Predicción
+
+```{r}
+# Conjunto de datos
+all_dataset <- na.omit(heart[, c("Age", "RestingBP", "Cholesterol", "MaxHR", "Oldpeak", "HeartDisease")])
+indices_entrenamiento <- sample(1:nrow(all_dataset), 0.7 * nrow(all_dataset))
+train_dataset <- all_dataset[indices_entrenamiento, ]
+test_dataset <- all_dataset[-indices_entrenamiento, ]
+
+# Entrenar el modelo
+modelo <- glm(HeartDisease ~ ., data = train_dataset, family = "binomial")
+predicciones <- predict(modelo, newdata = test_dataset, type = "response")
+
+# Clases (usando un umbral)
+umbral <- 0.3
+clases_predichas <- ifelse(predicciones > umbral, 1, 0)  
+precision <- mean(clases_predichas == all_dataset$HeartDisease)
+cat("Precisión del modelo:", precision)
+```
+
 
 A continuación, se han mostrado los **histogramas** de las diferentes variables numéricas para poder observar sus **frequencias**:
 

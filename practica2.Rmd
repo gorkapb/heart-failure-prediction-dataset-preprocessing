@@ -74,7 +74,14 @@ Contestada en el latex
 
 ```{r}
 
+ComX <- heart[, c("Age", "RestingBP", "Cholesterol", "MaxHR", "Oldpeak")]
 
+# plots
+par(mfrow = c(2, 3)) 
+for (col in names(ComX)) {
+  qqnorm(ComX[[col]], main = paste("Q-Q Plot de", col))
+  qqline(ComX[[col]], col = 2) 
+}
 
 ```
 
